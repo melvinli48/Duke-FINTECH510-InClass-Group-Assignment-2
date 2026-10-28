@@ -37,7 +37,20 @@ def parse_wire(line: str) -> tuple[str, str, float] | None:
 
     Use one regular expression with capture groups, and re.search with ^ and $ anchors.
     """
-    raise NotImplementedError
+    pattern=pattern = (
+    r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} "
+    r"WIRE \$((?:[0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)(?:\.[0-9]{2})?) "
+    r"from (ACCT-[0-9]{5}) to (ACCT-[0-9]{5}) ref INV-[0-9]{4}$")
+    re.search(line,pattern)
+    match = re.search(pattern, line)
+
+    if match is None:
+        return None
+    amount = float(match.group(1).replace(",", ""))
+    sender = match.group(2)
+    receiver = match.group(3)
+
+    return (sender, receiver, amount)
 
 
 def load_wires(path: str) -> tuple[list[tuple[str, str, float]], list[str]]:
@@ -49,7 +62,19 @@ def load_wires(path: str) -> tuple[list[tuple[str, str, float]], list[str]]:
 
     Blank lines are skipped. They are neither wires nor rejected lines.
     """
-    raise NotImplementedError
+
+    with open(path, "r") as file:
+        for line in file:
+            if not line.strip():
+                continue
+            wire = parse_wire(line.rstrip("\r\n"))
+
+            if wire is not None:
+                wires.append(wire)
+            else:
+                rejected.append(line.strip())
+
+    return wires, rejected
 
 
 # ------------------------------------------------------------------
@@ -74,7 +99,24 @@ class Graph:
 
         Use breadth-first search.
         """
-        raise NotImplementedError
+        if max_hops <= 0 or start not in self.graph:
+            return {}
+
+        distances = {}
+        queue = deque([(start, 0)])
+        visited = {start}
+        while queue:
+            account, hops = queue.popleft()
+            if hops == max_hops:
+                continue
+            for neighbor, _amount in self.graph.get(account, []):
+                if neighbor in visited:
+                    continue
+                next_hops = hops + 1
+                visited.add(neighbor)
+                distances[neighbor] = next_hops
+                queue.append((neighbor, next_hops))
+        return distances
 
     def shortest_hop_path(self, start: str, end: str) -> list[str]:
         """Return the chain of accounts [start, ..., end] that uses the fewest wires.
@@ -84,7 +126,28 @@ class Graph:
         Use breadth-first search. Record each account's predecessor when you first reach
         it, then walk back from end -- the same idea as the lecture's dijkstra().
         """
-        raise NotImplementedError
+        if start == end:
+            return [start]
+        if start not in self.graph:
+            return []
+
+        predecessors = {start: None}
+        queue = deque([start])
+        while queue:
+            account = queue.popleft()
+            for neighbor, _amount in self.graph.get(account, []):
+                if neighbor in predecessors:
+                    continue
+                predecessors[neighbor] = account
+                if neighbor == end:
+                    path = []
+                    current = end
+                    while current is not None:
+                        path.append(current)
+                        current = predecessors[current]
+                    return list(reversed(path))
+                queue.append(neighbor)
+        return []
 
 
 # ------------------------------------------------------------------
