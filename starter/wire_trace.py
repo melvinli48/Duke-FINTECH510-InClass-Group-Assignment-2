@@ -37,12 +37,12 @@ def parse_wire(line: str) -> tuple[str, str, float] | None:
 
     Use one regular expression with capture groups, and re.search with ^ and $ anchors.
     """
-    pattern=pattern = (
-    r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} "
-    r"WIRE \$((?:[0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)(?:\.[0-9]{2})?) "
-    r"from (ACCT-[0-9]{5}) to (ACCT-[0-9]{5}) ref INV-[0-9]{4}$")
-    re.search(line,pattern)
-    match = re.search(pattern, line)
+    pattern = (
+        r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} "
+        r"WIRE \$((?:[0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)(?:\.[0-9]{2})?) "
+        r"from (ACCT-[0-9]{5}) to (ACCT-[0-9]{5}) ref INV-[0-9]{4}$"
+    )
+    match = re.search(pattern, line.strip())
 
     if match is None:
         return None
@@ -63,6 +63,8 @@ def load_wires(path: str) -> tuple[list[tuple[str, str, float]], list[str]]:
     Blank lines are skipped. They are neither wires nor rejected lines.
     """
 
+    wires = []
+    rejected = []
     with open(path, "r") as file:
         for line in file:
             if not line.strip():
