@@ -4,10 +4,10 @@
 
 | Name | Role (Parser / Searcher / Reviewer) |
 |---|---|
-| | |
-| | |
-| | |
-| | |
+|Iris|Reviewer|
+|Mia|Parser|
+|Max|Searcher|
+|Melvin|Reviewer,Searcher|
 
 ---
 
