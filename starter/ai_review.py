@@ -16,7 +16,7 @@ import re
 
 def extract_refs(text: str) -> list[str]:
     """Return every INV reference followed by exactly four digits."""
-    pattern = r"(?<![A-Za-z0-9])INV-[0-9]{4}(?![0-9-])"
+    pattern = r"(?<![A-Za-z0-9])INV-[0-9]{4}(?![0-9])"
     return re.findall(pattern, text)
 
 
